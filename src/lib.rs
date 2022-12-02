@@ -5,21 +5,23 @@
 //!
 //! ```rust
 //! use printers;
-//! 
+//!
 //! let printers = printers::get_printers();
-//! 
+//!
 //! for printer in printers {
 //!     let job1 = printer.print("42".as_bytes());
 //!     let job2 = printer.print_file("/path/to/any.file");
-//! 
+//!
 //!     println!("{:?}", printer);
 //!     println!("{:?}", job1);
 //!     println!("{:?}", job2);
 //! }
 //! ```
 //!
-//! 
+//!
+#[cfg(target_family = "unix")]
 mod unix;
+#[cfg(target_family = "windows")]
 mod windows;
 mod process;
 
@@ -45,12 +47,13 @@ pub fn print_file(printer: &printer::Printer, file_path: &str) -> printer::Job {
 /**
  * Return all available printers on system
  */
+#[allow(unreachable_code)]
 pub fn get_printers() -> Vec<printer::Printer> {
-    if cfg!(windows) {
+    #[cfg(target_family = "windows")] {
         return windows::get_printers();
     }
 
-    if cfg!(unix) {
+    #[cfg(target_family = "unix")] {
         return unix::get_printers();
     }
 

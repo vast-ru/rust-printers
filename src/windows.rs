@@ -54,9 +54,9 @@ pub fn print(printer_system_name: &str, file_path: &str) -> Result<bool, String>
     );
 
     if process.is_err() {
-        return Result::Err(process.unwrap_err());
+        return Err(process.unwrap_err());
     }
 
-    return Result::Ok(true);
+    return Ok(true);
 
 }
