@@ -7,7 +7,7 @@ Printer can provide a list of printers available on the system and perform docum
 ## Behavior
 
 ```rust
-printers::get_printers() -> Vec<Printer>
+printers::get_printers() -> Result<Vec<Printer>, Box<dyn Error>>
 ```
 > Return a vector of available printers
 
@@ -45,7 +45,7 @@ fn main() {
 
 
     // Vector of system printers
-    let printers = printers::get_printers();
+    let printers = printers::get_printers().unwrap();
 
     // Print directly in all printers
     for printer in printers.clone() {

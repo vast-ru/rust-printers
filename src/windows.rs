@@ -2,6 +2,7 @@ use std::process::Command;
 use wmi::{COMLibrary, WMIConnection};
 use wmi::utils::WMIError;
 use serde::Deserialize;
+use std::error::Error;
 
 use crate::printer;
 use crate::process;
@@ -17,9 +18,9 @@ struct Win32_Printer {
 /**
  * Get printers on Windows using WMI
  */
-pub fn get_printers() -> Vec<printer::Printer> {
+pub fn get_printers() -> Result<Vec<printer::Printer>, Box<dyn Error>> {
 
-    let com_con = COMLibrary::new().unwrap_or_else(|e| {
+    let com_con = COMLibrary::new().or_else(|e| {
         match e {
             WMIError::HResultError { hres }  => match hres {
                 // RPC_E_TOO_LATE - CoInitializeSecurity has already been called
@@ -27,13 +28,12 @@ pub fn get_printers() -> Vec<printer::Printer> {
                 _ => Err(e),
             },
             _ => Err(e),
-        }.unwrap()
-    });
+        }
+    })?;
 
-    let wmi_con = WMIConnection::new(com_con).unwrap();
+    let wmi_con = WMIConnection::new(com_con)?;
 
-    let results: Vec<Win32_Printer> = wmi_con.query()
-        .unwrap_or(Vec::with_capacity(0));
+    let results: Vec<Win32_Printer> = wmi_con.query()?;
 
     let mut printers: Vec<printer::Printer> = Vec::with_capacity(results.len());
 
@@ -41,7 +41,7 @@ pub fn get_printers() -> Vec<printer::Printer> {
         printers.push(printer::Printer::new(r.Name, r.DriverName, &self::print));
     }
 
-    return printers;
+    return Ok(printers);
 }
 
 /**

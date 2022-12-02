@@ -28,6 +28,8 @@ mod process;
 /// Printer and Job control
 pub mod printer;
 
+use std::error::Error;
+
 /**
  * Print bytes on specific printer
  */
@@ -48,7 +50,7 @@ pub fn print_file(printer: &printer::Printer, file_path: &str) -> printer::Job {
  * Return all available printers on system
  */
 #[allow(unreachable_code)]
-pub fn get_printers() -> Vec<printer::Printer> {
+pub fn get_printers() -> Result<Vec<printer::Printer>, Box<dyn Error>> {
     #[cfg(target_family = "windows")] {
         return windows::get_printers();
     }
@@ -65,7 +67,7 @@ pub fn get_printers() -> Vec<printer::Printer> {
  */
 pub fn get_printer_by_id(id: &str) -> Option<printer::Printer> {
 
-    let printers = get_printers();
+    let printers = get_printers().unwrap();
 
     let opt = printers.iter().find(|&printer| {
         return printer.clone().id.eq(id)
@@ -80,7 +82,7 @@ pub fn get_printer_by_id(id: &str) -> Option<printer::Printer> {
  */
 pub fn get_printer_by_name(name: &str) -> Option<printer::Printer> {
 
-    let printers = get_printers();
+    let printers = get_printers().unwrap();
 
     let opt = printers.iter().find(|&printer| {
         return printer.clone().name.eq(name) || printer.clone().system_name.eq(name)

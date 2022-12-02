@@ -1,4 +1,5 @@
-use std::process::Command;    
+use std::error::Error;
+use std::process::Command;
 
 use crate::printer;
 use crate::process;
@@ -6,30 +7,23 @@ use crate::process;
 /**
  * Get printers on unix systems using lpstat
  */
-pub fn get_printers() -> Vec<printer::Printer> {
+pub fn get_printers() -> Result<Vec<printer::Printer>, Box<dyn Error>> {
 
-    let result = process::exec(Command::new("lpstat").arg("-e"));
+    let out_str = process::exec(Command::new("lpstat").arg("-e"))?;
 
-    if result.is_ok() {
+    let lines: Vec<&str> = out_str.split_inclusive("\n").collect();
+    let mut printers: Vec<printer::Printer> = Vec::with_capacity(lines.len());
 
-        let out_str = result.unwrap();
-        let lines: Vec<&str> = out_str.split_inclusive("\n").collect();
-        let mut printers: Vec<printer::Printer> = Vec::with_capacity(lines.len());
+    for line in lines {
 
-        for line in lines {
+        let system_name = line.replace("\n", "");
+        let name = String::from(system_name.replace("_", " ").trim());
 
-            let system_name = line.replace("\n", "");
-            let name = String::from(system_name.replace("_", " ").trim());
-
-            printers.push(printer::Printer::new(name, system_name, &self::print));
-
-        }
-
-        return printers;
+        printers.push(printer::Printer::new(name, system_name, &self::print));
 
     }
-        
-    return Vec::with_capacity(0);
+
+    Ok(printers)
 
 }
 
