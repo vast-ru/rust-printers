@@ -44,7 +44,7 @@ pub struct Printer {
     pub name: String,
 
     /**
-     * Name of Printer exactly as on system 
+     * Name of Printer exactly as on system
      */
     pub system_name: String,
 
@@ -66,7 +66,7 @@ impl Clone for Printer {
         return Printer {
             id: self.id.clone(),
             name: self.name.clone(),
-            system_name: self.name.clone(),
+            system_name: self.system_name.clone(),
             exec: self.exec.clone()
         }
     }
