@@ -1,44 +1,48 @@
 use std::process::Command;
+use wmi::{COMLibrary, WMIConnection};
+use wmi::utils::WMIError;
+use serde::Deserialize;
 
 use crate::printer;
 use crate::process;
 
+#[derive(Deserialize)]
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+struct Win32_Printer {
+    DriverName: String,
+    Name: String,
+}
+
 /**
- * Get printers on windows using wmic
+ * Get printers on Windows using WMI
  */
 pub fn get_printers() -> Vec<printer::Printer> {
 
-    let result = process::exec(
-        Command::new("wmic").arg("printer").arg("get").arg("DriverName, Name")
-    );
+    let com_con = COMLibrary::new().unwrap_or_else(|e| {
+        match e {
+            WMIError::HResultError { hres }  => match hres {
+                // RPC_E_TOO_LATE - CoInitializeSecurity has already been called
+                -2147417831 => COMLibrary::without_security(),
+                _ => Err(e),
+            },
+            _ => Err(e),
+        }.unwrap()
+    });
 
-    if result.is_ok() {
+    let wmi_con = WMIConnection::new(com_con).unwrap();
 
-        let out_str = result.unwrap();
-        let mut lines: Vec<&str> = out_str.split_inclusive("\n").collect();
-        lines.remove(0);
+    let results: Vec<Win32_Printer> = wmi_con.query()
+        .unwrap_or(Vec::with_capacity(0));
 
-        let mut printers: Vec<printer::Printer> = Vec::with_capacity(lines.len());
+    let mut printers: Vec<printer::Printer> = Vec::with_capacity(results.len());
 
-        for line in lines {
-            
-            let printer_data: Vec<&str> = line.split_ascii_whitespace().collect();
-
-            let name = String::from(printer_data[1]);
-            let system_name = String::from(printer_data[0]);
-
-            printers.push(printer::Printer::new(name, system_name,  &self::print));
-
-        }
-
-        return printers;
-
+    for r in results {
+        printers.push(printer::Printer::new(r.Name, r.DriverName, &self::print));
     }
 
-    return Vec::with_capacity(0);
-
+    return printers;
 }
-
 
 /**
  * Print on windows using lpr

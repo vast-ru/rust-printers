@@ -1,6 +1,6 @@
 # Printers
 
-Printers **is not a lib for printer drivers or cups**. Printers is a simple lib for running "native" printing commands in unix *(lp/lpstat)* and windows *(lpr/wmic)* systems.
+Printers **is not a lib for printer drivers or cups**. Printers is a simple lib for running "native" printing commands in unix *(lp/lpstat)* and windows *(lpr/wmi)* systems.
 
 Printer can provide a list of printers available on the system and perform document printing.
 
